@@ -22,17 +22,17 @@
    </q-toolbar>
 
    <div class="q-pa-md">
-    <q-btn-dropdown color="#a5a5a5" label="Trabajos" text-color="#000000">
+    <q-btn-dropdown class="botonar" color="#a5a5a5" label="Trabajos" text-color="#000000">
       <q-list>
-        <q-item clickable v-close-popup @click="onItemClick">
+        <q-item clickable v-close-popup @click="onItemClick('Aceptados')">
           <q-item-section>
-            <q-item-label>Rechazados</q-item-label>
+            <q-item-label>Aceptados</q-item-label>
           </q-item-section>
         </q-item>
 
-        <q-item clickable v-close-popup @click="onItemClick">
+        <q-item clickable v-close-popup @click="onItemClick('Rechazados')">
           <q-item-section>
-            <q-item-label>Aceptados</q-item-label>
+            <q-item-label>Rechazados</q-item-label>
           </q-item-section>
         </q-item>
       </q-list>
@@ -40,13 +40,13 @@
   </div>
 
   <q-page>
-    <div v-if="selectedOption === 'Aceptados'"class="q-mx-auto">
+    <div v-if="selectedOption === 'Aceptados'" class="ola q-mx-auto">
     <q-list bordered>
       <q-item>
-        <q-item-section class="col-2">
+        <q-item-section class="col-2 text-center">
           <q-item-label header>Nombre Empresa</q-item-label>
         </q-item-section>
-        <q-item-section class="col-2">
+        <q-item-section class="col-2 text-center">
           <q-item-label header>Trabajo a realizar</q-item-label>
         </q-item-section>
         <q-item-section class="col-2 text-center">
@@ -56,32 +56,32 @@
         <q-item-section class="col-4 text-center">
           <q-item-label header>Confirmación</q-item-label>
         </q-item-section>
-        <q-item-section class="col-1 text-center">
+        <q-item-section class="col-2 text-center">
           <q-item-label header>Más información</q-item-label>
         </q-item-section>
 
       </q-item>
 
       <q-item v-for="(actividad, index) in actividadesFiltradas" :key="index" :class="{'bg-grey-4': index % 2 === 0}">
-        <q-item-section class="col-3 text center">
+        <q-item-section class="col-2 text center">
           {{ actividad.nombre }}
         </q-item-section>
-        <q-item-section class="col-2">
+        <q-item-section class="col-2 text-center">
           {{ actividad.trabajo }}
         </q-item-section>
         <q-item-section class="col-2 text-center">
           {{ actividad.fecha }}
         </q-item-section>
 
-        <q-item-section class="col-3 text-center">
-          <div v-if="actividad.entradaConfirmada && actividad.salidaConfirmada" style="display: flex; align-items: center; justify-content: center;">
-            Hora Confirmada: {{ actividad.entradaConfirmada }} - {{ actividad.salidaConfirmada }}
+        <q-item-section class="col-4 icon-center" >
+          {{ actividad.confirmacion }}
+          <div>
+            <!-- aca irian los iconos de "solicitud rechazada" (intente usar el close-octagon pero no me funciono) -->
           </div>
         </q-item-section>
-        <q-item-section class="col-2 text-center">
-          {{ actividad.MásInformación }}
-        <div class="q-pa-md q-gutter-sm">
-         <q-btn color="white" text-color="black" icon="description" />
+        <q-item-section class="col-2">
+        <div class="boton-container">
+         <q-btn  @click="info" class="boton" color="white" text-color="black" icon="description"/>
         </div>
         </q-item-section>
       </q-item>
@@ -90,10 +90,11 @@
   </q-page>
 
   <q-page>
-    <div v-if="selectedOption === 'Rechazados'"class="q-mx-auto">
+
+    <div v-if="selectedOption === 'Rechazados'" class="ola q-mx-auto">
     <q-list bordered>
       <q-item>
-        <q-item-section class="col-2">
+        <q-item-section class="col-3">
           <q-item-label header>Nombre Empresa</q-item-label>
         </q-item-section>
         <q-item-section class="col-2">
@@ -113,19 +114,25 @@
       </q-item>
 
       <q-item v-for="(actividad, index) in actividadesFiltradas" :key="index" :class="{'bg-grey-4': index % 2 === 0}">
-        <q-item-section class="col-3 text center">
+        <q-item-section class="col-2 text center">
           {{ actividad.nombre }}
         </q-item-section>
-        <q-item-section class="col-2">
+        <q-item-section class="col-2 text-center">
           {{ actividad.trabajo }}
         </q-item-section>
         <q-item-section class="col-2 text-center">
           {{ actividad.fecha }}
         </q-item-section>
-        <q-item-section class="col-2 text-center">
-          {{ actividad.MásInformación }}
-        <div class="q-pa-md q-gutter-sm">
-         <q-btn color="white" text-color="black" icon="description" />
+
+        <q-item-section class="col-4 icon-center" >
+          {{ actividad.confirmacion }}
+          <div>
+            <!-- aca irian los iconos de "solicitud rechazada" (intente usar el close-octagon pero no me funciono) -->
+          </div>
+        </q-item-section>
+        <q-item-section class="col-2">
+        <div class="boton-container">
+         <q-btn @click="info" class="boton" color="white" text-color="black" icon="description"/>
         </div>
         </q-item-section>
       </q-item>
@@ -135,13 +142,17 @@
 
 </template>
 
+
+
+
 <script setup>
+import { info } from '/src/composables/useScripts.js'
 import { ref, computed, onMounted } from 'vue';
 
 const actividades = ref([
-  { nombre: "Los Pinos", trabajo: "Revisar sistema eléctrico", fecha: "2024-010-11", completada: false },
-  { nombre: "El Roble", trabajo: "Reparar sistema de agua", horaEntrada: "9:00", horaSalida: "18:00", fecha: "2024-08-2", completada: false },
-  { nombre: "Industria Metalúrgica", trabajo: "Mantenimiento de máquinas", horaEntrada: "7:30", horaSalida: "16:00", fecha: "2024-08-25", completada: false },
+  { nombre: "Los Pinos", trabajo: "Revisar sistema eléctrico", fecha: "2024-11-11", completada: false },
+  { nombre: "El Roble", trabajo: "Reparar sistema de agua", horaEntrada: "9:00", horaSalida: "18:00", fecha: "2024-11-2", completada: false },
+  { nombre: "Industria Metalúrgica", trabajo: "Mantenimiento de máquinas", horaEntrada: "7:30", horaSalida: "16:00", fecha: "2024-10-25", completada: false },
   { nombre: "Colegio San Martín", trabajo: "Instalación de paneles solares", horaEntrada: "7:00", horaSalida: "15:00", fecha: "2024-08-26", completada: false },
   { nombre: "Hospital Central", trabajo: "Reparación de generador", horaEntrada: "6:30", horaSalida: "14:30", fecha: "2024-08-27", completada: false },
   { nombre: "Taller Mecánico López", trabajo: "Reemplazo de luces fluorescentes", horaEntrada: "10:00", horaSalida: "19:00", fecha: "2024-08-28", completada: false },
@@ -171,6 +182,8 @@ const actividades = ref([
   { nombre: "Centro Comercial Las Flores", trabajo: "Instalación de cámaras de seguridad", horaEntrada: "9:00", horaSalida: "18:00", fecha: "2024-09-01", completada: false }
 ]);
 
+
+
 const actividadesFiltradas = computed(() => {
   const hoy = new Date().toISOString().split('T')[0];
   return actividades.value.filter(actividad => actividad.fecha >= hoy);
@@ -188,10 +201,37 @@ const actividadesFiltradas = computed(() => {
 }
 }
 
-
 </style>
 <style>
 .botonar {
   color: #000000;
+  background: #e1e1e1;
+}
+
+.boton-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>
+
+<script>
+
+export default {
+  data() {
+    return {
+
+      selectedOption: 'Aceptados'
+
+    }
+
+  },
+  methods: {
+    onItemClick(option) {
+      this.selectedOption = option
+    }
+  }
+}
+</script>
+
+
